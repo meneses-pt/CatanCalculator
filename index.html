@@ -30,7 +30,20 @@
 			font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 		}
 
-		.page { max-width: 760px; margin: 0 auto; }
+		.page { max-width: 1240px; margin: 0 auto; }
+
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 18px;
+			margin-bottom: 18px;
+		}
+		.grid > .card { margin-bottom: 0; }
+		.grid.work { align-items: start; }
+
+		@media (max-width: 900px) {
+			.grid { grid-template-columns: minmax(0, 1fr); }
+		}
 
 		.card {
 			background: var(--card);
@@ -88,6 +101,18 @@
 <body>
 <div class="page">
 
+	<div class="grid work">
+	<div class="card">
+		<div id="pasteStatus" style="min-height:1.2em"></div>
+		<div id="input"> </div>
+	</div>
+
+	<div class="card board">
+		<canvas id="gameBoard" width="560" height="520"></canvas>
+	</div>
+	</div>
+
+	<div class="grid">
 	<div class="card">
 		<div class="welcome">Welcome to the Catan Resource Generation Calculator!</div>
 		To use this calculator, simply enter the number on each of the circular pips on the game board. (Enter a 0 for the
@@ -133,14 +158,6 @@
 
 		<p>Or enter your numbers here using their relative positions on the board then press the "Calculate" button:</p>
 	</div>
-
-	<div class="card">
-		<div id="pasteStatus" style="min-height:1.2em"></div>
-		<div id="input"> </div>
-	</div>
-
-	<div class="card board">
-		<canvas id="gameBoard" width="560" height="520"></canvas>
 	</div>
 
 	<script src="board-reader.js"></script>
