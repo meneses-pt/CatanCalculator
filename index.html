@@ -48,12 +48,17 @@
 
 	The table is pre-loaded with the sample beginner's game found in the player's rulebook.<br><br>
 
-	Enter your numbers here using their relative positions on the board then press the "Calculate" button: <br><br>
+	<b>Paste a screenshot</b> of a colonist.io board (Ctrl/Cmd+V anywhere on this page) and the numbers are filled in and
+	calculated for you. Any numbers it was unsure about are outlined in red, so check those.<br><br>
 
+	Or enter your numbers here using their relative positions on the board then press the "Calculate" button: <br><br>
+
+	<div id="pasteStatus" style="min-height:1.2em"></div><br>
 	<div id="input"> </div>
 	<br>
 	<canvas id="gameBoard" width="560" height="520"></canvas>
 
+	<script src="board-reader.js"></script>
 	<script>
 		var ctx = document.getElementById("gameBoard").getContext("2d");
 
@@ -217,34 +222,35 @@
 				drawLabel(x, y, tileValues[x][y], "#FFFFFF")
 			}
 
-			var canvas = document.getElementById("gameBoard");
-			function getCursorPosition(canvas, event) {
-				const rect = canvas.getBoundingClientRect()
-				let x = event.clientX - rect.left
-				let y = event.clientY - rect.top
-				console.log("x: " + x + " y: " + y)
-				start_x = tileValuesCoords[0][0][0]
-				start_y = tileValuesCoords[0][0][0]
-				end_x = tileValuesCoords[10][16][0] + TBOX_WIDTH
-				end_y = tileValuesCoords[10][16][1] + TBOX_WIDTH
-				board_width = end_x - start_x
-				board_height = end_y - start_y
-				x = x - start_x
-				y = y - start_y
-				i = Math.floor(x / (board_width / 11))
-				j = Math.floor(y / (board_height / 17))
-
-				console.log("i: " + Math.floor(x / (board_width / 11)))
-				console.log("j: " + Math.floor(y / (board_height / 17)))
-
-				change_state(i, j);
-			}
-
-			canvas.addEventListener('click', function (e) {
-				getCursorPosition(canvas, e)
-			})
-
 		}
+
+		var canvas = document.getElementById("gameBoard");
+
+		function getCursorPosition(canvas, event) {
+			const rect = canvas.getBoundingClientRect()
+			let x = event.clientX - rect.left
+			let y = event.clientY - rect.top
+			console.log("x: " + x + " y: " + y)
+			start_x = tileValuesCoords[0][0][0]
+			start_y = tileValuesCoords[0][0][0]
+			end_x = tileValuesCoords[10][16][0] + TBOX_WIDTH
+			end_y = tileValuesCoords[10][16][1] + TBOX_WIDTH
+			board_width = end_x - start_x
+			board_height = end_y - start_y
+			x = x - start_x
+			y = y - start_y
+			i = Math.floor(x / (board_width / 11))
+			j = Math.floor(y / (board_height / 17))
+
+			console.log("i: " + Math.floor(x / (board_width / 11)))
+			console.log("j: " + Math.floor(y / (board_height / 17)))
+
+			change_state(i, j);
+		}
+
+		canvas.addEventListener('click', function (e) {
+			getCursorPosition(canvas, e)
+		})
 
 		function change_state(i, j) {
 			if (tileValuesColorState[i][j][1] == 0) {
@@ -334,6 +340,65 @@
 		}
 
 		initializePage()
+
+		function setPasteStatus(message, isError) {
+			let el = document.getElementById("pasteStatus")
+			el.textContent = message
+			el.style.color = isError ? "#B00020" : "#006400"
+		}
+
+		function fillFromScreenshot(imageData) {
+			let result = BoardReader.readBoard(imageData)
+
+			if (!result.ok) {
+				setPasteStatus(result.error, true)
+				return
+			}
+
+			for (let i = 0; i < 19; i++) {
+				let input = document.getElementById("hex" + i)
+				input.value = result.values[i] === null ? "" : result.values[i]
+				input.style.outline = result.uncertain.includes(i) ? "2px solid red" : ""
+			}
+
+			let incomplete = result.values.includes(null)
+			let notes = result.warnings.slice()
+			if (result.uncertain.length) {
+				notes.push("Check the " + result.uncertain.length + " hex(es) outlined in red.")
+			}
+
+			if (incomplete) {
+				setPasteStatus("Board read, but some numbers are missing. Fill in the red boxes then press Calculate. " + notes.join(" "), true)
+			} else {
+				calculateHexes()
+				setPasteStatus("Board read from screenshot. " + notes.join(" "), notes.length > 0)
+			}
+		}
+
+		document.addEventListener("paste", function (event) {
+			let items = event.clipboardData ? Array.from(event.clipboardData.items) : []
+			let item = items.find(it => it.kind === "file" && it.type.startsWith("image/"))
+			if (!item) return // plain text pastes into the inputs as usual
+
+			event.preventDefault()
+			setPasteStatus("Reading screenshot...", false)
+
+			createImageBitmap(item.getAsFile()).then(function (bitmap) {
+				let scratch = document.createElement("canvas")
+				scratch.width = bitmap.width
+				scratch.height = bitmap.height
+				let scratchCtx = scratch.getContext("2d")
+				scratchCtx.drawImage(bitmap, 0, 0)
+				fillFromScreenshot(scratchCtx.getImageData(0, 0, bitmap.width, bitmap.height))
+			}).catch(function () {
+				setPasteStatus("Could not read that image.", true)
+			})
+		})
+
+		// A manual edit clears the "unsure" outline on that box.
+		document.getElementById("input").addEventListener("input", function (e) {
+			e.target.style.outline = ""
+		})
 
 		//	<input id="wood" value="0" onclick="this.setSelectionRange(0, this.value.length)">
 
