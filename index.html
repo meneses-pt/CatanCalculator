@@ -6,57 +6,142 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Catan Yields</title>
+	<style>
+		:root {
+			--bg: #eef3f8;
+			--card: #ffffff;
+			--ink: #1f2a37;
+			--muted: #5b6b7c;
+			--line: #d9e2ec;
+			--accent: #2563a8;
+			--red: linear-gradient(90deg, #ffc9c4, #f26b63);
+			--yellow: linear-gradient(90deg, #fff3b0, #ffd23f);
+			--blue: linear-gradient(90deg, #bde9f5, #4fc3e8);
+			--green: linear-gradient(90deg, #c5f0b8, #3fcb5b);
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			margin: 0;
+			padding: 24px 16px 48px;
+			background: var(--bg);
+			color: var(--ink);
+			font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+		}
+
+		.page { max-width: 760px; margin: 0 auto; }
+
+		.card {
+			background: var(--card);
+			border: 1px solid var(--line);
+			border-radius: 14px;
+			padding: 20px 24px;
+			margin-bottom: 18px;
+			box-shadow: 0 1px 3px rgba(31, 42, 55, .06);
+		}
+
+		.welcome { font-size: 1.15rem; font-weight: 600; color: var(--accent); }
+
+		table { border-collapse: separate; border-spacing: 0; width: 100%; margin: 12px 0 0; }
+		th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+		th { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+		tr:last-child td { border-bottom: 0; }
+		.swatch {
+			display: inline-block; width: 56px; height: 14px; border-radius: 7px;
+			vertical-align: middle; margin-right: 10px; border: 1px solid rgba(0, 0, 0, .08);
+		}
+		.swatch.red { background: var(--red); }
+		.swatch.yellow { background: var(--yellow); }
+		.swatch.blue { background: var(--blue); }
+		.swatch.green { background: var(--green); }
+
+		.steps { margin: 0; }
+		.steps p { margin: 0 0 12px; }
+		.steps p:last-child { margin-bottom: 0; }
+
+		#pasteStatus { margin-bottom: 12px; font-weight: 500; }
+
+		#input { text-align: center; }
+		#input .row { display: flex; justify-content: center; gap: 8px; margin-bottom: 8px; }
+		#input input {
+			width: 48px; height: 44px; text-align: center; font-size: 1.05rem; font-weight: 600;
+			border: 1px solid var(--line); border-radius: 10px; background: #f8fafc; color: var(--ink);
+		}
+		#input input:focus { outline: 2px solid var(--accent); background: #fff; }
+		#input button {
+			margin-top: 8px; padding: 10px 28px; font-size: 1rem; font-weight: 600; color: #fff;
+			background: var(--accent); border: 0; border-radius: 10px; cursor: pointer;
+		}
+		#input button:hover { filter: brightness(1.1); }
+
+		.board { text-align: center; }
+		#gameBoard {
+			max-width: 100%; height: auto; border-radius: 12px; background: #fff;
+			border: 1px solid var(--line);
+		}
+
+		.footer { text-align: center; color: var(--muted); font-size: .9rem; }
+	</style>
 </head>
 
 <body>
+<div class="page">
 
-	Welcome to the Catan Resource Generation Calculator!<br><br>
-	To use this calculator, simply enter the number on each of the circular pips on the game board. (Enter a 0 for the
-	desert.) The page will calculate the relative strengths of each potential settlement position on the board.
-	Positions are also color-coded as follows:
-	<br><br>
-	<table display="inline">
-		<tr>
-			<th>Color</th>
-			<th>% Chance</th>
-			<th>Draws (out of 36 rolls)</th>
-		</tr>
-		<tr>
-			<td>Red</td>
-			<td>Less than 0.75%</td>
-			<td>1-2</td>
-		</tr>
-		<tr>
-			<td>Yellow</td>
-			<td>0.75% to 1.5%</td>
-			<td>3-5</td>
-		</tr>
-		<tr>
-			<td>Blue</td>
-			<td>1.5% to 2.5%</td>
-			<td>6-8</td>
-		</tr>
-		<tr>
-			<td>Green</td>
-			<td>2.5% or more</td>
-			<td>9+</td>
-		</tr>
-	</table><br><br>
+	<div class="card">
+		<div class="welcome">Welcome to the Catan Resource Generation Calculator!</div>
+		To use this calculator, simply enter the number on each of the circular pips on the game board. (Enter a 0 for the
+		desert.) The page will calculate the relative strengths of each potential settlement position on the board.
+		Positions are also color-coded as follows, darker meaning stronger within each color:
+		<table>
+			<tr>
+				<th>Color</th>
+				<th>% Chance</th>
+				<th>Draws (out of 36 rolls)</th>
+			</tr>
+			<tr>
+				<td><span class="swatch red"></span>Red</td>
+				<td>Less than 0.75%</td>
+				<td>1-2</td>
+			</tr>
+			<tr>
+				<td><span class="swatch yellow"></span>Yellow</td>
+				<td>0.75% to 1.5%</td>
+				<td>3-5</td>
+			</tr>
+			<tr>
+				<td><span class="swatch blue"></span>Blue</td>
+				<td>1.5% to 2.5%</td>
+				<td>6-8</td>
+			</tr>
+			<tr>
+				<td><span class="swatch green"></span>Green</td>
+				<td>2.5% or more</td>
+				<td>9+</td>
+			</tr>
+		</table>
+	</div>
 
-	In short, green and blue are where you most likely want to place initial settlements, whereas red spaces are where
-	you might want to place them if you're my buddy Chris and you "have a strategy you want to try out".<br><br>
+	<div class="card steps">
+		<p>In short, green and blue are where you most likely want to place initial settlements, whereas red spaces are
+			where you might want to place them if you're my buddy Chris and you "have a strategy you want to try out".</p>
 
-	The table is pre-loaded with the sample beginner's game found in the player's rulebook.<br><br>
+		<p>The table is pre-loaded with the sample beginner's game found in the player's rulebook.</p>
 
-	<b>Paste a screenshot</b> of a colonist.io board (Ctrl/Cmd+V anywhere on this page) and the numbers are filled in and
-	calculated for you. Any numbers it was unsure about are outlined in red, so check those.<br><br>
+		<p><b>Paste a screenshot</b> of a colonist.io board (Ctrl/Cmd+V anywhere on this page) and the numbers are filled
+			in and calculated for you. Any numbers it was unsure about are outlined in red, so check those.</p>
 
-	Or enter your numbers here using their relative positions on the board then press the "Calculate" button: <br><br>
+		<p>Or enter your numbers here using their relative positions on the board then press the "Calculate" button:</p>
+	</div>
 
-	<div id="pasteStatus" style="min-height:1.2em"></div><br>
-	<div id="input"> </div>
-	<br>
-	<canvas id="gameBoard" width="560" height="520"></canvas>
+	<div class="card">
+		<div id="pasteStatus" style="min-height:1.2em"></div>
+		<div id="input"> </div>
+	</div>
+
+	<div class="card board">
+		<canvas id="gameBoard" width="560" height="520"></canvas>
+	</div>
 
 	<script src="board-reader.js"></script>
 	<script>
@@ -82,10 +167,8 @@
 			tileValuesColorState[i] = new Array(17)
 		}
 
-		function drawHexInput(index, margin) {
-			let content = `<input id="hex` + index + `" onclick="this.setSelectionRange(0, this.value.length)" value="` + tileDefaults[index] + `" style="width:20px; margin-left:` + margin * 10 + `px">`;
-
-			return content
+		function drawHexInput(index) {
+			return `<input id="hex` + index + `" onclick="this.setSelectionRange(0, this.value.length)" value="` + tileDefaults[index] + `">`
 		}
 
 		function initializePage() {
@@ -103,19 +186,19 @@
 			let count = 0
 
 			for (let i = 0; i < 5; i++) {
-				pageContent += drawHexInput(count, Math.abs(2 - i) + .2)
+				pageContent += `<div class="row">` + drawHexInput(count)
 				tileCenters[count] = [Math.abs(2 - i) + 1, 3 * i + 2]
 				count++
 
 				for (let j = 0; j < 4 - Math.abs(2 - i); j++) {
-					pageContent += drawHexInput(count, 0)
+					pageContent += drawHexInput(count)
 					tileCenters[count] = [Math.abs(2 - i) + (2 * (j + 1)) + 1, 3 * i + 2]
 					count++;
 				}
-				pageContent += "<br>"
+				pageContent += `</div>`
 			}
 
-			pageContent += `<br><button onClick="calculateHexes()">Calculate</button>`
+			pageContent += `<button onClick="calculateHexes()">Calculate</button>`
 
 			document.getElementById("input").innerHTML = pageContent
 		}
@@ -140,7 +223,9 @@
 		}
 
 		function drawHex(x, y) {
-			ctx.strokeStyle = "#0000FF"
+			ctx.strokeStyle = "#9fb3c8"
+			ctx.lineWidth = 2
+			ctx.fillStyle = "#f4f8fc"
 			ctx.beginPath()
 			ctx.moveTo(x + (HEX_WIDTH / 2), y)
 			ctx.lineTo(x + (HEX_WIDTH), y + (HEX_HEIGHT / 4))
@@ -149,27 +234,28 @@
 			ctx.lineTo(x, y + (HEX_HEIGHT * 3 / 4))
 			ctx.lineTo(x, y + (HEX_HEIGHT / 4))
 			ctx.lineTo(x + (HEX_WIDTH / 2), y)
+			ctx.fill()
 			ctx.stroke()
 		}
 
 		function drawLabel(x_index, y_index, value, color) {
+			let cx = START_X + (x_index * HEX_WIDTH / 2)
+			let cy = START_Y + (y_index * HEX_HEIGHT / 4)
+			let half = TBOX_WIDTH / 2
 
-			ctx.strokeStyle = "#000000"
 			ctx.fillStyle = color
-			ctx.font = "20px Arial"
-
-			ctx.fillRect(START_X + (x_index * HEX_WIDTH / 2) - (TBOX_WIDTH / 2), START_Y + (y_index * HEX_HEIGHT / 4) - (TBOX_WIDTH / 2), TBOX_WIDTH, TBOX_WIDTH)
-
+			ctx.strokeStyle = "rgba(31, 42, 55, 0.35)"
+			ctx.lineWidth = 1
 			ctx.beginPath()
-			ctx.moveTo(START_X + (x_index * HEX_WIDTH / 2) - (TBOX_WIDTH / 2), START_Y + (y_index * HEX_HEIGHT / 4) - (TBOX_WIDTH / 2))
-			ctx.lineTo(START_X + (x_index * HEX_WIDTH / 2) - (TBOX_WIDTH / 2), START_Y + (y_index * HEX_HEIGHT / 4) + (TBOX_WIDTH / 2))
-			ctx.lineTo(START_X + (x_index * HEX_WIDTH / 2) + (TBOX_WIDTH / 2), START_Y + (y_index * HEX_HEIGHT / 4) + (TBOX_WIDTH / 2))
-			ctx.lineTo(START_X + (x_index * HEX_WIDTH / 2) + (TBOX_WIDTH / 2), START_Y + (y_index * HEX_HEIGHT / 4) - (TBOX_WIDTH / 2))
-			ctx.lineTo(START_X + (x_index * HEX_WIDTH / 2) - (TBOX_WIDTH / 2), START_Y + (y_index * HEX_HEIGHT / 4) - (TBOX_WIDTH / 2))
+			ctx.roundRect(cx - half, cy - half, TBOX_WIDTH, TBOX_WIDTH, 7)
+			ctx.fill()
 			ctx.stroke()
 
-			ctx.fillStyle = "#000000"
-			ctx.fillText(value, START_X + (x_index * HEX_WIDTH / 2) - (TBOX_WIDTH / 4), START_Y + (y_index * HEX_HEIGHT / 4) + (TBOX_WIDTH / 6))
+			ctx.fillStyle = color === "#000" ? "#ffffff" : "#1f2a37"
+			ctx.font = "600 17px system-ui, -apple-system, Arial, sans-serif"
+			ctx.textAlign = "center"
+			ctx.textBaseline = "middle"
+			ctx.fillText(value, cx, cy + 1)
 		}
 
 		function calculateHexes() {
@@ -308,31 +394,20 @@
 			}
 		}
 
+		// Each range keeps its hue; within it the colour gets stronger as the value goes up.
+		const COLOR_RANGES = [
+			{ min: 1, max: 2, from: [255, 201, 196], to: [242, 107, 99] },  // red
+			{ min: 3, max: 5, from: [255, 243, 176], to: [255, 210, 63] },  // yellow
+			{ min: 6, max: 8, from: [189, 233, 245], to: [79, 195, 232] },  // blue
+			{ min: 9, max: 13, from: [197, 240, 184], to: [63, 203, 91] }   // green
+		]
+
 		function valueToColor(value) {
-			if (value < 3) return "#FF0000"
-			if (value < 6) return "#FFFF00"
-			if (value < 9) return "cyan"
-			return "#00FF00"
-
-			let color = "#"
-
-			let colorValue = 255 - (32 * value)
-			if (colorValue < 0) colorValue = 0
-			color += colorValue.toString(16)
-			if (colorValue < 16) color += "0"
-
-			colorValue = 32 * value - 255
-			if (colorValue < 0) colorValue = 0
-			color += colorValue.toString(16)
-			if (colorValue < 16) color += "0"
-
-			colorValue = 255 - Math.abs(255 - (32 * value))
-			color += colorValue.toString(16)
-			if (colorValue < 16) color += "0"
-
-			console.log(value, color)
-
-			return color
+			let range = COLOR_RANGES.find(r => value <= r.max) || COLOR_RANGES[COLOR_RANGES.length - 1]
+			let t = (value - range.min) / (range.max - range.min)
+			t = Math.min(1, Math.max(0, t))
+			let rgb = range.from.map((c, i) => Math.round(c + (range.to[i] - c) * t))
+			return "rgb(" + rgb.join(",") + ")"
 		}
 
 		function numbersToDots(value) {
@@ -403,7 +478,8 @@
 		//	<input id="wood" value="0" onclick="this.setSelectionRange(0, this.value.length)">
 
 	</script>
-	<br><br> This page is ugly and probably doesn't work too well on mobile. I'm okay with that. <br><br>
+	<div class="footer">This page is ugly and probably doesn't work too well on mobile. I'm okay with that.</div>
+</div>
 </body>
 
 </html>
