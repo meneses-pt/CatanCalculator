@@ -151,6 +151,9 @@
 		<p>In short, green and blue are where you most likely want to place initial settlements, whereas red spaces are
 			where you might want to place them if you're my buddy Chris and you "have a strategy you want to try out".</p>
 
+		<p><b>Left click</b> a spot on the board to mark it as yours (purple), <b>right click</b> to mark it as someone
+			else's (dark red). Click again to clear it. Spots too close to a settlement are greyed out.</p>
+
 		<p>The table is pre-loaded with the sample beginner's game found in the player's rulebook.</p>
 
 		<p><b>Paste a screenshot</b> of a colonist.io board (Ctrl/Cmd+V anywhere on this page) and the numbers are filled
@@ -227,6 +230,7 @@
 				for (let j = 0; j < 17; j++) {
 					tileValues[i][j] = 0
 					tileValuesCoords[i][j] = 0
+					tileValuesColorState[i][j] = null
 				}
 			}
 		}
@@ -255,7 +259,7 @@
 			ctx.stroke()
 		}
 
-		function drawLabel(x_index, y_index, value, color) {
+		function drawLabel(x_index, y_index, value, color, textColor) {
 			let cx = START_X + (x_index * HEX_WIDTH / 2)
 			let cy = START_Y + (y_index * HEX_HEIGHT / 4)
 			let half = TBOX_WIDTH / 2
@@ -268,7 +272,7 @@
 			ctx.fill()
 			ctx.stroke()
 
-			ctx.fillStyle = color === "#000" ? "#ffffff" : "#1f2a37"
+			ctx.fillStyle = textColor || "#1f2a37"
 			ctx.font = "600 17px system-ui, -apple-system, Arial, sans-serif"
 			ctx.textAlign = "center"
 			ctx.textBaseline = "middle"
@@ -329,85 +333,90 @@
 
 		var canvas = document.getElementById("gameBoard");
 
-		function getCursorPosition(canvas, event) {
+		function getCellAt(event) {
 			const rect = canvas.getBoundingClientRect()
-			let x = event.clientX - rect.left
-			let y = event.clientY - rect.top
-			console.log("x: " + x + " y: " + y)
-			start_x = tileValuesCoords[0][0][0]
-			start_y = tileValuesCoords[0][0][0]
-			end_x = tileValuesCoords[10][16][0] + TBOX_WIDTH
-			end_y = tileValuesCoords[10][16][1] + TBOX_WIDTH
-			board_width = end_x - start_x
-			board_height = end_y - start_y
-			x = x - start_x
-			y = y - start_y
-			i = Math.floor(x / (board_width / 11))
-			j = Math.floor(y / (board_height / 17))
-
-			console.log("i: " + Math.floor(x / (board_width / 11)))
-			console.log("j: " + Math.floor(y / (board_height / 17)))
-
-			change_state(i, j);
+			// the canvas may be scaled down by CSS on narrow screens
+			let x = (event.clientX - rect.left) * (canvas.width / rect.width)
+			let y = (event.clientY - rect.top) * (canvas.height / rect.height)
+			let start_x = tileValuesCoords[0][0][0]
+			let start_y = tileValuesCoords[0][0][1]
+			let end_x = tileValuesCoords[10][16][0] + TBOX_WIDTH
+			let end_y = tileValuesCoords[10][16][1] + TBOX_WIDTH
+			let i = Math.floor((x - start_x) / ((end_x - start_x) / 11))
+			let j = Math.floor((y - start_y) / ((end_y - start_y) / 17))
+			return [i, j]
 		}
 
-		canvas.addEventListener('click', function (e) {
-			getCursorPosition(canvas, e)
-		})
-
-		function change_state(i, j) {
-			if (tileValuesColorState[i][j][1] == 0) {
-				tileValuesColorState[i][j][1] = 1
-				drawLabel(i, j, tileValues[i][j], "orange")
-				mark_unusable_neighbours(i, j)
-			}
-			else if (tileValuesColorState[i][j][1] == 1) {
-				tileValuesColorState[i][j][1] = 2
-				drawLabel(i, j, tileValues[i][j], "violet")
-				mark_unusable_neighbours(i, j)
-			}
-			else {
-				tileValuesColorState[i][j][1] = 0
-				drawLabel(i, j, tileValues[i][j], tileValuesColorState[i][j][0])
-				mark_usable_neighbours(i, j)
-			}
+		function handleBoardClick(event, kind) {
+			event.preventDefault()
+			if (!tileValuesCoords[0][0][0]) return // nothing calculated yet
+			let [i, j] = getCellAt(event)
+			toggleSettlement(i, j, kind)
 		}
 
-		function mark_unusable(i, j) {
-			if (i < 11 && j < 17 && tileValuesColorState[i][j] != null) {
-				drawLabel(i, j, tileValues[i][j], "#000")
-				tileValuesColorState[i][j][1] = -1
-			}
+		// left click: my settlement; right click: someone else's
+		canvas.addEventListener('click', function (e) { handleBoardClick(e, SETTLED_MINE) })
+		canvas.addEventListener('contextmenu', function (e) { handleBoardClick(e, SETTLED_OTHER) })
+
+		// Cell states: 0 free, SETTLED_MINE, SETTLED_OTHER, or BLOCKED (next to a settlement).
+		const SETTLED_MINE = 1
+		const SETTLED_OTHER = 2
+		const BLOCKED = -1
+
+		const STATE_STYLES = {
+			[SETTLED_MINE]: { fill: "#6d28d9", text: "#ffffff" },
+			[SETTLED_OTHER]: { fill: "#b91c1c", text: "#ffffff" },
+			[BLOCKED]: { fill: "#d5dbe3", text: "#8793a1" }
 		}
 
-		function mark_usable(i, j) {
-			if (i < 11 && j < 17 && tileValuesColorState[i][j] != null) {
-				drawLabel(i, j, tileValues[i][j], tileValuesColorState[i][j][0])
-				tileValuesColorState[i][j][1] = 0
-			}
+		function cellAt(i, j) {
+			if (i < 0 || j < 0 || i >= 11 || j >= 17) return null
+			return tileValuesColorState[i][j] || null
 		}
 
-		function mark_unusable_neighbours(i, j) {
+		// The three corners that share an edge with corner (i, j).
+		function neighbourCorners(i, j) {
 			if ((i % 2 == 0 && [0, 1].includes((j - 3) % 6)) || (i % 2 != 0 && [0, 1].includes(j % 6))) {
-				mark_unusable(i, j - 2)
-				mark_unusable(i - 1, j + 1)
-				mark_unusable(i + 1, j + 1)
-			} else {
-				mark_unusable(i - 1, j - 1)
-				mark_unusable(i + 1, j - 1)
-				mark_unusable(i, j + 2)
+				return [[i, j - 2], [i - 1, j + 1], [i + 1, j + 1]]
 			}
+			return [[i - 1, j - 1], [i + 1, j - 1], [i, j + 2]]
 		}
 
-		function mark_usable_neighbours(i, j) {
-			if ((i % 2 == 0 && [0, 1].includes((j - 3) % 6)) || (i % 2 != 0 && [0, 1].includes(j % 6))) {
-				mark_usable(i, j - 2)
-				mark_usable(i - 1, j + 1)
-				mark_usable(i + 1, j + 1)
-			} else {
-				mark_usable(i - 1, j - 1)
-				mark_usable(i + 1, j - 1)
-				mark_usable(i, j + 2)
+		function toggleSettlement(i, j, kind) {
+			let cell = cellAt(i, j)
+			if (cell == null || cell[1] == BLOCKED) return
+
+			// same button again clears it; the other button switches owner
+			cell[1] = cell[1] == kind ? 0 : kind
+			refreshBoard()
+		}
+
+		function refreshBoard() {
+			for (let i = 0; i < 11; i++) {
+				for (let j = 0; j < 17; j++) {
+					let cell = cellAt(i, j)
+					if (cell && cell[1] == BLOCKED) cell[1] = 0
+				}
+			}
+
+			for (let i = 0; i < 11; i++) {
+				for (let j = 0; j < 17; j++) {
+					let cell = cellAt(i, j)
+					if (!cell || (cell[1] != SETTLED_MINE && cell[1] != SETTLED_OTHER)) continue
+					for (let [ni, nj] of neighbourCorners(i, j)) {
+						let neighbour = cellAt(ni, nj)
+						if (neighbour && neighbour[1] == 0) neighbour[1] = BLOCKED
+					}
+				}
+			}
+
+			for (let i = 0; i < 11; i++) {
+				for (let j = 0; j < 17; j++) {
+					let cell = cellAt(i, j)
+					if (!cell || tileValues[i][j] == 0) continue
+					let style = STATE_STYLES[cell[1]]
+					drawLabel(i, j, tileValues[i][j], style ? style.fill : cell[0], style ? style.text : null)
+				}
 			}
 		}
 
